@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paunelens 3R · Calculador</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e14;
+    --surface: #111620;
+    --surface2: #181e2b;
+    --border: #1e2a3a;
+    --border2: #263346;
+    --accent: #00c8a0;
+    --accent2: #0088ff;
+    --accent3: #ff6b35;
+    --text: #e2eaf5;
+    --text2: #7a90aa;
+    --text3: #4a607a;
+    --green: #00c8a0;
+    --blue: #0088ff;
+    --orange: #ff6b35;
+    --red: #ff4444;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,160,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px 60px; }
+
+  /* Header */
+  header {
+    padding: 40px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .logo-block { flex: 1; }
+  .logo-label {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-family: var(--sans);
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  h1 span { color: var(--accent); }
+  .header-sub {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 8px;
+    letter-spacing: 0.05em;
+  }
+  .mode-toggle {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .mode-btn {
+    padding: 10px 18px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .mode-btn.active {
+    background: var(--accent);
+    color: #000;
+  }
+
+  /* Layout */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--border2); }
+  .card-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .card-title {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text2);
+  }
+  .card-body { padding: 20px; }
+
+  /* Field groups */
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .field-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+  .field-row.single { grid-template-columns: 1fr; }
+  .field-group { display: flex; flex-direction: column; gap: 5px; }
+  label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+  input[type="number"], select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    width: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input[type="number"]:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,200,160,0.1);
+  }
+  select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a607a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  /* Calculate button */
+  .calc-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #000;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .calc-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0);
+    transition: background 0.2s;
+  }
+  .calc-btn:hover::after { background: rgba(255,255,255,0.1); }
+  .calc-btn:active { transform: scale(0.98); }
+
+  /* Results */
+  .results-section { margin-top: 32px; }
+  .results-title {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .results-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Result cards */
+  .result-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    transition: all 0.3s;
+  }
+  .result-card.highlight {
+    border-color: var(--accent);
+    box-shadow: 0 0 24px rgba(0,200,160,0.08);
+  }
+  .result-card.highlight2 {
+    border-color: var(--blue);
+    box-shadow: 0 0 24px rgba(0,136,255,0.08);
+  }
+  .result-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
+  .badge-green { background: rgba(0,200,160,0.15); color: var(--green); }
+  .badge-blue { background: rgba(0,136,255,0.15); color: var(--blue); }
+  .badge-orange { background: rgba(255,107,53,0.15); color: var(--orange); }
+
+  /* Parameter grid */
+  .param-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .param-item { display: flex; flex-direction: column; gap: 3px; }
+  .param-key {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .param-val {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .param-val.accent { color: var(--accent); }
+  .param-val.blue { color: var(--blue); }
+  .param-val.orange { color: var(--orange); }
+  .param-unit { font-size: 10px; color: var(--text3); }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  /* Decision indicator */
+  .decision-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    transition: all 0.3s;
+  }
+  .decision-box.toric { background: rgba(255,107,53,0.08); border: 1px solid rgba(255,107,53,0.3); }
+  .decision-box.spheric { background: rgba(0,136,255,0.08); border: 1px solid rgba(0,136,255,0.3); }
+  .decision-icon { font-size: 20px; }
+  .decision-text { flex: 1; }
+  .decision-main { font-family: var(--sans); font-weight: 700; font-size: 14px; }
+  .decision-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+  /* Sag diff meter */
+  .sag-meter { margin-bottom: 20px; }
+  .sag-bar-track {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    margin-top: 6px;
+    position: relative;
+    overflow: hidden;
+  }
+  .sag-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1), background 0.3s;
+  }
+  .sag-bar-threshold {
+    position: absolute;
+    top: -2px;
+    width: 2px;
+    height: 10px;
+    background: rgba(255,255,255,0.3);
+    left: 25%; /* 25µm / ~100µm max */
+  }
+  .sag-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+
+  /* Hidden/show */
+  .section-flow { display: flex; flex-direction: column; gap: 20px; }
+  .mode-panel { display: none; }
+  .mode-panel.active { display: block; }
+
+  /* Info tooltip */
+  .info-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  /* Rounded section */
+  .rounded-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--border2);
+  }
+  .rounded-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 12px;
+  }
+
+  /* Animate in */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in { animation: fadeUp 0.4s ease forwards; }
+
+  /* Section spacer */
+  .spacer { height: 20px; }
+
+  /* Optimizer section */
+  .optimizer-note {
+    font-size: 11px;
+    color: var(--text3);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="logo-block">
+      <div class="logo-label">Calculador óptico</div>
+      <h1>Paune<span>Lens</span> 3R</h1>
+      <div class="header-sub">Lente escleral · Cálculo de parámetros</div>
+    </div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" onclick="setMode('new')" id="btn-new">Cornea → Lente</button>
+      <button class="mode-btn" onclick="setMode('optimize')" id="btn-opt">Optimizar lente</button>
+    </div>
+  </header>
+
+  <!-- MODE 1: Cornea → Lente nuevo -->
+  <div class="mode-panel active" id="panel-new">
+    <div class="grid-2">
+
+      <!-- Inputs -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-dot" style="background:var(--accent)"></div>
+            <div class="card-title">Parámetros corneales</div>
+          </div>
+          <div class="card-body">
+
+            <div class="field-row triple">
+              <div class="field-group">
+                <label>Meridiano plano · Radio (mm)</label>
+                <input type="number" id="n_kf_r" value="7.59" step="0.01">
+              </div>
+              <div class="field-group">
+                <label>Excentricidad plano</label>
+                <input type="number" id="n_kf_e" value="0.57" step="0.01">
+              </div>
+              <div></div>
+            </div>
+
+            <div class="field-row triple">
+              <div class="field-group">
+                <label>Meridiano curvo · Radio (mm)</label>
+                <input type="number" id="n_ks_r" value="7.39" step="0.01">
+              </div>
+              <div class="field-group">
+                <label>Excentricidad curvo</label>
+                <input type="number" id="n_ks_e" value="0.56" step="0.01">
+              </div>
+              <div></div>
+            </div>
+
+            <div class="field-row">
+              <div class="field-group">
+                <label>Refracción esférica (D)</label>
+                <input type="number" id="n_sph" value="-2.37" step="0.25">
+              </div>
+              <div class="field-group">
+                <label>Cilindro refractivo (D)</label>
+                <input type="number" id="n_cyl" value="-2.62" step="0.25">
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field-group">
+                <label>Diámetro total TD (mm)</label>
+                <input type="number" id="n_td" value="11.0" step="0.1">
+              </div>
+              <div class="field-group">
+                <label>Control de miopía (0–1)</label>
+                <input type="number" id="n_myopia" value="1.0" step="0.1" min="0" max="1">
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field-group">
+                <label>Comp. BOZD plano (mm)</label>
+                <input type="number" id="n_comp_bozd_f" value="0" step="0.1">
+              </div>
+              <div class="field-group">
+                <label>Comp. BOZD curvo (mm)</label>
+                <input type="number" id="n_comp_bozd_s" value="0" step="0.1">
+              </div>
+            </div>
+
+            <div class="field-row single">
+              <div class="field-group">
+                <label>Tipo de lente (forzar)</label>
+                <select id="n_type_override">
+                  <option value="auto">Automático (según sagita)</option>
+                  <option value="Toric">Tórico</option>
+                  <option value="Spherical">Esférico</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="calc-btn" onclick="calcNew()">Calcular parámetros</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div id="results-new" style="opacity:0; transition: opacity 0.4s;">
+        <div class="result-card highlight">
+          <div class="result-label">Resultado calculado</div>
+
+          <div id="decision-box-new" class="decision-box toric" style="display:none">
+            <div class="decision-icon" id="decision-icon-new">🔵</div>
+            <div class="decision-text">
+              <div class="decision-main" id="decision-text-new">Tórico</div>
+              <div class="decision-sub" id="decision-sub-new">Diferencia de sagitas ≥ 25 µm</div>
+            </div>
+          </div>
+
+          <div class="sag-meter">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:10px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase">Diferencia de sagitas</span>
+              <span id="sag-diff-val" style="font-size:13px;color:var(--text);font-weight:500">—</span>
+            </div>
+            <div class="sag-bar-track">
+              <div class="sag-bar-fill" id="sag-bar" style="width:0%"></div>
+              <div class="sag-bar-threshold"></div>
+            </div>
+            <div class="sag-labels"><span>0 µm</span><span>▲ 25 µm</span><span>100 µm</span></div>
+          </div>
+
+          <div class="param-grid" id="result-params-new">
+            <div class="param-item">
+              <div class="param-key">Kf (BOZR plano)</div>
+              <div class="param-val accent" id="r_kf">—</div>
+              <div class="param-unit">mm</div>
+            </div>
+            <div class="param-item">
+              <div class="param-key">PCf</div>
+              <div class="param-val" id="r_pcf">—</div>
+              <div class="param-unit">mm</div>
+            </div>
+            <div class="param-item">
+              <div class="param-key">TP (potencia)</div>
+              <div class="param-val orange" id="r_tp">—</div>
+              <div class="param-unit">D</div>
+            </div>
+            <div class="param-item">
+              <div class="param-key">Ks (BOZR curvo)</div>
+              <div class="param-val accent" id="r_ks">—</div>
+              <div class="param-unit">mm</div>
+            </div>
+            <div class="param-item">
+              <div class="param-key">PCs</div>
+              <div class="param-val" id="r_pcs">—</div>
+              <div class="param-unit">mm</div>
+            </div>
+            <div class="param-item">
+              <div class="param-key">Cilindro C</div>
+              <div class="param-val orange" id="r_c">—</div>
+              <div class="param-unit">D</div>
+            </div>
+            <div class="param-item">
+              <div class="param-key">BOZDf</div>
+              <div class="param-val blue" id="r_bozdf">—</div>
+              <div class="param-unit">mm</div>
+            </div>
+            <div class="param-item">
+              <div class="param-key">BOZDs</div>
+              <div class="param-val blue" id="r_bozds">—</div>
+              <div class="param-unit">mm</div>
+            </div>
+            <div class="param-item">
+              <div class="param-key">TD</div>
+              <div class="param-val" id="r_td">—</div>
+              <div class="param-unit">mm</div>
+            </div>
+          </div>
+
+          <div class="rounded-section">
+            <div class="rounded-label">Parámetros redondeados (fabricación)</div>
+            <div class="param-grid">
+              <div class="param-item">
+                <div class="param-key">Kf</div>
+                <div class="param-val accent" id="rr_kf">—</div>
+                <div class="param-unit">mm</div>
+              </div>
+              <div class="param-item">
+                <div class="param-key">PCf</div>
+                <div class="param-val" id="rr_pcf">—</div>
+                <div class="param-unit">mm</div>
+              </div>
+              <div class="param-item">
+                <div class="param-key">TP</div>
+                <div class="param-val orange" id="rr_tp">—</div>
+                <div class="param-unit">D</div>
+              </div>
+              <div class="param-item">
+                <div class="param-key">Ks</div>
+                <div class="param-val accent" id="rr_ks">—</div>
+                <div class="param-unit">mm</div>
+              </div>
+              <div class="param-item">
+                <div class="param-key">PCs</div>
+                <div class="param-val" id="rr_pcs">—</div>
+                <div class="param-unit">mm</div>
+              </div>
+              <div class="param-item">
+                <div class="param-key">Cilindro C</div>
+                <div class="param-val orange" id="rr_c">—</div>
+                <div class="param-unit">D</div>
+              </div>
+              <div class="param-item">
+                <div class="param-key">BOZDf</div>
+                <div class="param-val blue" id="rr_bozdf">—</div>
+                <div class="param-unit">mm</div>
+              </div>
+              <div class="param-item">
+                <div class="param-key">BOZDs</div>
+                <div class="param-val blue" id="rr_bozds">—</div>
+                <div class="param-unit">mm</div>
+              </div>
+              <div class="param-item">
+                <div class="param-key">TD</div>
+                <div class="param-val" id="rr_td">—</div>
+                <div class="param-unit">mm</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-row" id="info-row-new" style="display:none">
+            <span>ℹ</span>
+            <span id="info-text-new"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODE 2: Optimizar lente existente -->
+  <div class="mode-panel" id="panel-optimize">
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-dot" style="background:var(--blue)"></div>
+            <div class="card-title">Lente actual</div>
+          </div>
+          <div class="card-body">
+            <div class="field-row">
+              <div class="field-group">
+                <label>Kf actual (mm)</label>
+                <input type="number" id="o_kf" value="7.91" step="0.05">
+              </div>
+              <div class="field-group">
+                <label>PCf actual (mm)</label>
+                <input type="number" id="o_pcf" value="7.93" step="0.05">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label>Ks actual (mm)</label>
+                <input type="number" id="o_ks" value="7.59" step="0.05">
+              </div>
+              <div class="field-group">
+                <label>PCs actual (mm)</label>
+                <input type="number" id="o_pcs" value="7.61" step="0.05">
+              </div>
+            </div>
+            <div class="field-row triple">
+              <div class="field-group">
+                <label>TP actual (D)</label>
+                <input type="number" id="o_tp" value="-9.5" step="0.25">
+              </div>
+              <div class="field-group">
+                <label>Cilindro C (D)</label>
+                <input type="number" id="o_c" value="-1.25" step="0.25">
+              </div>
+              <div class="field-group">
+                <label>TD actual (mm)</label>
+                <input type="number" id="o_td" value="10.8" step="0.1">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label>BOZDf (mm)</label>
+                <input type="number" id="o_bozdf" value="5.4" step="0.1">
+              </div>
+              <div class="field-group">
+                <label>BOZDs (mm)</label>
+                <input type="number" id="o_bozds" value="5.3" step="0.1">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-dot" style="background:var(--orange)"></div>
+            <div class="card-title">Ajustes deseados</div>
+          </div>
+          <div class="card-body">
+            <div class="field-row">
+              <div class="field-group">
+                <label>TLT apical (µm)</label>
+                <input type="number" id="o_tlt" value="0" step="5">
+              </div>
+              <div class="field-group">
+                <label>Cambio de TD (mm)</label>
+                <input type="number" id="o_td_change" value="0" step="0.1">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label>Cambio de potencia (D)</label>
+                <input type="number" id="o_tp_change" value="0" step="0.25">
+              </div>
+              <div class="field-group">
+                <label>Cambio de cilindro (D)</label>
+                <input type="number" id="o_cyl_change" value="0" step="0.25">
+              </div>
+            </div>
+            <div class="field-row single">
+              <div class="field-group">
+                <label>Tórico o esférico</label>
+                <select id="o_type">
+                  <option value="Toric">Tórico</option>
+                  <option value="Spherical">Esférico</option>
+                </select>
+              </div>
+            </div>
+            <button class="calc-btn" onclick="calcOptimize()" style="background:var(--blue)">Calcular lente optimizado</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Optimized results -->
+      <div id="results-opt" style="opacity:0; transition: opacity 0.4s;">
+        <div class="result-card highlight2">
+          <div class="result-label">Lente optimizado <span class="badge badge-blue">nuevo</span></div>
+          <div class="param-grid">
+            <div class="param-item">
+              <div class="param-key">Kf</div>
+              <div class="param-val blue" id="or_kf">—</div>
+              <div class="param-unit">mm</div>
+            </div>
+            <div class="param-item">
+              <div class="param-key">PCf</div>
+              <div class="param-val" id="or_pcf">—</div>
+              <div class="param-unit">mm</div>
+            </div>
+            <div class="param-item">
+              <div class="param-key">TP</div>
+              <div class="param-val orange" id="or_tp">—</div>
+              <div class="param-unit">D</div>
+            </div>
+            <div class="param-item">
+              <div class="param-key">Ks</div>
+              <div class="param-val blue" id="or_ks">—</div>
+              <div class="param-unit">mm</div>
+            </div>
+            <div class="param-item">
+              <div class="param-key">PCs</div>
+              <div class="param-val" id="or_pcs">—</div>
+              <div class="param-unit">mm</div>
+            </div>
+            <div class="param-item">
+              <div class="param-key">Cilindro C</div>
+              <div class="param-val orange" id="or_c">—</div>
+              <div class="param-unit">D</div>
+            </div>
+            <div class="param-item">
+              <div class="param-key">BOZDf</div>
+              <div class="param-val" id="or_bozdf">—</div>
+              <div class="param-unit">mm</div>
+            </div>
+            <div class="param-item">
+              <div class="param-key">BOZDs</div>
+              <div class="param-val" id="or_bozds">—</div>
+              <div class="param-unit">mm</div>
+            </div>
+            <div class="param-item">
+              <div class="param-key">TD</div>
+              <div class="param-val" id="or_td">—</div>
+              <div class="param-unit">mm</div>
+            </div>
+          </div>
+
+          <div class="rounded-section">
+            <div class="rounded-label">Parámetros redondeados</div>
+            <div class="param-grid">
+              <div class="param-item">
+                <div class="param-key">Kf</div>
+                <div class="param-val blue" id="orr_kf">—</div>
+                <div class="param-unit">mm</div>
+              </div>
+              <div class="param-item">
+                <div class="param-key">PCf</div>
+                <div class="param-val" id="orr_pcf">—</div>
+                <div class="param-unit">mm</div>
+              </div>
+              <div class="param-item">
+                <div class="param-key">TP</div>
+                <div class="param-val orange" id="orr_tp">—</div>
+                <div class="param-unit">D</div>
+              </div>
+              <div class="param-item">
+                <div class="param-key">Ks</div>
+                <div class="param-val blue" id="orr_ks">—</div>
+                <div class="param-unit">mm</div>
+              </div>
+              <div class="param-item">
+                <div class="param-key">PCs</div>
+                <div class="param-val" id="orr_pcs">—</div>
+                <div class="param-unit">mm</div>
+              </div>
+              <div class="param-item">
+                <div class="param-key">Cilindro C</div>
+                <div class="param-val orange" id="orr_c">—</div>
+                <div class="param-unit">D</div>
+              </div>
+              <div class="param-item">
+                <div class="param-key">BOZDf</div>
+                <div class="param-val" id="orr_bozdf">—</div>
+                <div class="param-unit">mm</div>
+              </div>
+              <div class="param-item">
+                <div class="param-key">BOZDs</div>
+                <div class="param-val" id="orr_bozds">—</div>
+                <div class="param-unit">mm</div>
+              </div>
+              <div class="param-item">
+                <div class="param-key">TD</div>
+                <div class="param-val" id="orr_td">—</div>
+                <div class="param-unit">mm</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── Math helpers ───────────────────────────────────────────────────────────
+
+// Sagita de superficie cónica: SAG(R, e, r)
+// r = semidiámetro de evaluación
+function sag(R, e, r) {
+  const p = 1 - e * Math.abs(e); // p = 1 - e²
+  const num = R - Math.sqrt(R * R - p * r * r);
+  return num / p;
+}
+
+// MROUND: redondear al múltiplo más cercano
+function mround(val, mult) {
+  return Math.round(val / mult) * mult;
+}
+
+// Redondear con signo (para potencias)
+function roundPower(val, mult) {
+  return Math.sign(val) * mround(Math.abs(val), mult);
+}
+
+function fmt(val, dec = 2) {
+  if (val === null || isNaN(val)) return '—';
+  return val.toFixed(dec);
+}
+
+// Calcular BOZR a partir de dos sagitas
+// Dados sag a r1 (s1) y sag a r2 (s2), derivar radio R y excentricidad e
+// R = (r1² + p·r2²) / (2·r2) donde p = (r1² - r2²)/(r1² - 2*s2*r1 + s2²... )
+// La fórmula del Excel usa la forma cuadrática:
+// PC = SQRT( (Δsag⁴·p² + 2·Δsag²·(r1²+r2²)·p + (r1²+r2²)² - 4r1²r2²) / (4·Δsag²) )
+function calcBOZRpair(r1, s1, r2, s2, p) {
+  const ds = s2 - s1;
+  const K = (r1 * r1 + p * s1 * s1) / (2 * s1);
+  const ds4p2 = Math.pow(ds, 4) * p * p;
+  const cross = 2 * ds * ds * (r1 * r1 + r2 * r2) * p;
+  const sq = (r1 * r1 + r2 * r2) * (r1 * r1 + r2 * r2) - 4 * r1 * r1 * r2 * r2;
+  const PC = Math.sqrt((ds4p2 + cross + sq) / (4 * ds * ds));
+  return { K, PC };
+}
+
+// Calcular K y PC desde sagitas a distancias fijas
+// Fórmulas del sheet Calculos B9/D9 y B10/D10
+function getKfromSags(s1, s2, r1, r2, p) {
+  // K: radio en el centro (r1)
+  const K = (r1 * r1 + p * s1 * s1) / (2 * s1);
+  // PC: radio en r2
+  const ds = s2 - s1;
+  const ds4p2 = Math.pow(ds, 4) * p * p;
+  const cross = 2 * ds * ds * (r1 * r1 + r2 * r2) * p;
+  const sq = Math.pow(r1 * r1 + r2 * r2, 2) - 4 * r1 * r1 * r2 * r2;
+  const PC = Math.sqrt((ds4p2 + cross + sq) / (4 * ds * ds));
+  return { K, PC };
+}
+
+// Potencia del lente (vergencias)
+// TP = -337.5/Kf_lens + 337.5/Kf_cornea + 1.25
+function calcTP(Kf_lens, Kf_cornea) {
+  return -337.5 / Kf_lens + 337.5 / Kf_cornea + 1.25;
+}
+
+// PC del lente a partir de TP y cornea
+// PC = 337.5 / (337.5/Kf_cornea + TP - 1.25)
+function PCfromTP(Kf_cornea, TP) {
+  return 337.5 / (337.5 / Kf_cornea + TP - 1.25);
+}
+
+// ─── BOZD calculation ───────────────────────────────────────────────────────
+// BOZDf = MROUND((0.12 * Kf + 6.6) - myopiaCtrl * ((0.12 * Kf + 6.6) - 4.7) + compBOZD, 0.1)
+function calcBOZD(K, myopiaCtrl, compBOZD) {
+  const base = 0.12 * K + 6.6;
+  return mround(base - myopiaCtrl * (base - 4.7) + compBOZD, 0.1);
+}
+
+// ─── MODO 1: Cornea → Nuevo lente ───────────────────────────────────────────
+function calcNew() {
+  const Rf = parseFloat(document.getElementById('n_kf_r').value);
+  const ef = parseFloat(document.getElementById('n_kf_e').value);
+  const Rs = parseFloat(document.getElementById('n_ks_r').value);
+  const es = parseFloat(document.getElementById('n_ks_e').value);
+  const sph = parseFloat(document.getElementById('n_sph').value);
+  const cyl = parseFloat(document.getElementById('n_cyl').value);
+  const TD = parseFloat(document.getElementById('n_td').value);
+  const myopia = parseFloat(document.getElementById('n_myopia').value);
+  const compBOZDf = parseFloat(document.getElementById('n_comp_bozd_f').value);
+  const compBOZDs = parseFloat(document.getElementById('n_comp_bozd_s').value);
+  const typeOverride = document.getElementById('n_type_override').value;
+
+  // Distancias estándar
+  const r1 = 3.5, r2 = 5.0;
+
+  // Sagitas corneales a r1 y r2
+  const sagF_r1 = sag(Rf, ef, r1);
+  const sagF_r2 = sag(Rf, ef, r2);
+  const sagS_r1 = sag(Rs, es, r1);
+  const sagS_r2 = sag(Rs, es, r2);
+
+  // Diferencia de sagitas a 4mm (semidiámetro)
+  const sagF_4 = sag(Rf, ef, 4);
+  const sagS_4 = sag(Rs, es, 4);
+  const sagDiff = (sagS_4 - sagF_4) * 1000; // en µm
+
+  // Excentricidad media (p = 1-e²)
+  const ecc = 0.52;  // valor default del Excel
+  const p = 1 - ecc * ecc;
+
+  // K y PC del lente plano
+  const { K: Kf, PC: PCf } = getKfromSags(sagF_r1, sagF_r2, r1, r2, p);
+  // K y PC del lente curvo
+  const { K: Ks, PC: PCs } = getKfromSags(sagS_r1, sagS_r2, r1, r2, p);
+
+  // Radio de la cornea equivalente (para potencia)
+  // Se usa la refracción para derivar Kf corneal equivalente
+  // Rc = 337.5 / (337.5/Kf + refraccion + 1.25)  (invertida)
+  // Pero aquí el Kf/Ks calculados YA son los radios del lente.
+  // Potencia: TP = -337.5/Kf_lente + 337.5/Kf_cornea + 1.25
+  // Kf_cornea viene de la refracción y el radio corneal:
+  // 337.5/Kf_cornea = 337.5/Rf + sph  →  Kf_cornea = 337.5/(337.5/Rf + sph)
+  const Kf_cornea = 337.5 / (337.5 / Rf + sph);
+  const Ks_cornea = 337.5 / (337.5 / Rs + sph + cyl);
+
+  const TP = calcTP(Kf, Kf_cornea);
+  const C_toric = calcTP(Ks, Ks_cornea) - TP;
+
+  // Spheric alternative: promedio
+  const Kf_sph = (Kf + Ks) / 2;
+  const PCf_sph = (PCf + PCs) / 2;
+
+  // BOZD
+  const BOZDf = calcBOZD(Rf, myopia, compBOZDf);
+  const BOZDs = calcBOZD(Rf + (Rs - Rf), myopia, compBOZDs);
+
+  // Toric/spheric decision
+  let lensType = typeOverride === 'auto'
+    ? (sagDiff >= 25 ? 'Toric' : 'Spherical')
+    : typeOverride;
+
+  const isToric = lensType === 'Toric';
+  const finalKf = isToric ? Kf : Kf_sph;
+  const finalKs = isToric ? Ks : Kf_sph;
+  const finalPCf = isToric ? PCf : PCf_sph;
+  const finalPCs = isToric ? PCs : PCf_sph;
+  const finalC = isToric ? C_toric : 0;
+
+  // Rounded
+  const rrKf = mround(finalKf, 0.05);
+  const rrKs = mround(finalKs, 0.05);
+  const rrPCf = mround(finalPCf, 0.05);
+  const rrPCs = mround(finalPCs, 0.05);
+  const rrTP = roundPower(TP, 0.25);
+  const rrC = roundPower(finalC, 0.25);
+  const rrBOZDf = mround(BOZDf, 0.1);
+  const rrBOZDs = mround(BOZDs, 0.1);
+
+  // Show results
+  const div = document.getElementById('results-new');
+  div.style.opacity = '1';
+
+  // Decision box
+  const dbox = document.getElementById('decision-box-new');
+  dbox.style.display = 'flex';
+  dbox.className = 'decision-box ' + (isToric ? 'toric' : 'spheric');
+  document.getElementById('decision-icon-new').textContent = isToric ? '🟠' : '🔵';
+  document.getElementById('decision-text-new').textContent = isToric ? 'Tórico' : 'Esférico';
+  document.getElementById('decision-sub-new').textContent =
+    `Diferencia de sagitas: ${sagDiff.toFixed(1)} µm ${typeOverride !== 'auto' ? '(forzado)' : ''}`;
+
+  // Sag bar
+  const pct = Math.min(sagDiff / 100 * 100, 100);
+  const bar = document.getElementById('sag-bar');
+  bar.style.width = pct + '%';
+  bar.style.background = sagDiff >= 25 ? 'var(--orange)' : 'var(--blue)';
+  document.getElementById('sag-diff-val').textContent = sagDiff.toFixed(2) + ' µm';
+
+  // Params
+  document.getElementById('r_kf').textContent = fmt(finalKf);
+  document.getElementById('r_ks').textContent = fmt(finalKs);
+  document.getElementById('r_pcf').textContent = fmt(finalPCf);
+  document.getElementById('r_pcs').textContent = fmt(finalPCs);
+  document.getElementById('r_tp').textContent = fmt(TP);
+  document.getElementById('r_c').textContent = isToric ? fmt(finalC) : '(esf)';
+  document.getElementById('r_bozdf').textContent = fmt(BOZDf, 1);
+  document.getElementById('r_bozds').textContent = fmt(BOZDs, 1);
+  document.getElementById('r_td').textContent = fmt(TD, 1);
+
+  // Rounded
+  document.getElementById('rr_kf').textContent = fmt(rrKf);
+  document.getElementById('rr_ks').textContent = fmt(rrKs);
+  document.getElementById('rr_pcf').textContent = fmt(rrPCf);
+  document.getElementById('rr_pcs').textContent = fmt(rrPCs);
+  document.getElementById('rr_tp').textContent = fmt(rrTP);
+  document.getElementById('rr_c').textContent = isToric ? fmt(rrC) : '(esf)';
+  document.getElementById('rr_bozdf').textContent = fmt(rrBOZDf, 1);
+  document.getElementById('rr_bozds').textContent = fmt(rrBOZDs, 1);
+  document.getElementById('rr_td').textContent = fmt(TD, 1);
+
+  const info = document.getElementById('info-row-new');
+  info.style.display = 'flex';
+  document.getElementById('info-text-new').textContent =
+    `Sagitas: Plano(3.5mm)=${sagF_r1.toFixed(4)}  Curvo(3.5mm)=${sagS_r1.toFixed(4)}  |  ecc usada: ${ecc}`;
+}
+
+// ─── MODO 2: Optimizar lente existente ──────────────────────────────────────
+function calcOptimize() {
+  const Kf = parseFloat(document.getElementById('o_kf').value);
+  const PCf = parseFloat(document.getElementById('o_pcf').value);
+  const Ks = parseFloat(document.getElementById('o_ks').value);
+  const PCs = parseFloat(document.getElementById('o_pcs').value);
+  const TP = parseFloat(document.getElementById('o_tp').value);
+  const C = parseFloat(document.getElementById('o_c').value);
+  const TD = parseFloat(document.getElementById('o_td').value);
+  const BOZDf = parseFloat(document.getElementById('o_bozdf').value);
+  const BOZDs = parseFloat(document.getElementById('o_bozds').value);
+
+  const tlt = parseFloat(document.getElementById('o_tlt').value);
+  const tdChange = parseFloat(document.getElementById('o_td_change').value);
+  const tpChange = parseFloat(document.getElementById('o_tp_change').value);
+  const cylChange = parseFloat(document.getElementById('o_cyl_change').value);
+  const lensType = document.getElementById('o_type').value;
+  const isToric = lensType === 'Toric';
+
+  // Nuevos valores base con ajustes directos
+  const newTP = TP + tpChange;
+  const newC = C + cylChange;
+  const newTD = TD + tdChange;
+
+  // Optimización de TLT: ajustar Kf/Ks
+  // Conversión TLT (µm) → ajuste de radio (mm)
+  // Un aplanamiento del BOZR aumenta la TLT apical
+  // Aproximación: δR ≈ δTLT/1000 * factor_sagita
+  // En el Excel: R16 = apicalTLT * 5 (en µm/5 = coeficiente empírico)
+  const tltAdjF = tlt * 5 / 1000; // mm
+  const newKf = Kf + tltAdjF;
+  const newKs = Ks + tltAdjF;
+
+  // PC se recalcula para mantener la sagita periférica
+  // PCf_nuevo ≈ PCf + ajuste proporcional
+  const newPCf = PCf + tltAdjF * (PCf / Kf);
+  const newPCs = PCs + tltAdjF * (PCs / Ks);
+
+  // BOZD: mantener o ajustar por TD
+  // BOZDf se escala levemente con el cambio de TD
+  const scale = (newTD / TD);
+  const newBOZDf = mround(BOZDf * Math.sqrt(scale), 0.1);
+  const newBOZDs = mround(BOZDs * Math.sqrt(scale), 0.1);
+
+  // Rounded
+  const rrKf = mround(newKf, 0.05);
+  const rrKs = mround(newKs, 0.05);
+  const rrPCf = mround(newPCf, 0.05);
+  const rrPCs = mround(newPCs, 0.05);
+  const rrTP = roundPower(newTP, 0.25);
+  const rrC = roundPower(newC, 0.25);
+
+  // Show
+  const div = document.getElementById('results-opt');
+  div.style.opacity = '1';
+
+  document.getElementById('or_kf').textContent = fmt(newKf);
+  document.getElementById('or_ks').textContent = fmt(newKs);
+  document.getElementById('or_pcf').textContent = fmt(newPCf);
+  document.getElementById('or_pcs').textContent = fmt(newPCs);
+  document.getElementById('or_tp').textContent = fmt(newTP);
+  document.getElementById('or_c').textContent = isToric ? fmt(newC) : '(esf)';
+  document.getElementById('or_bozdf').textContent = fmt(newBOZDf, 1);
+  document.getElementById('or_bozds').textContent = fmt(newBOZDs, 1);
+  document.getElementById('or_td').textContent = fmt(newTD, 1);
+
+  document.getElementById('orr_kf').textContent = fmt(rrKf);
+  document.getElementById('orr_ks').textContent = fmt(rrKs);
+  document.getElementById('orr_pcf').textContent = fmt(rrPCf);
+  document.getElementById('orr_pcs').textContent = fmt(rrPCs);
+  document.getElementById('orr_tp').textContent = fmt(rrTP);
+  document.getElementById('orr_c').textContent = isToric ? fmt(rrC) : '(esf)';
+  document.getElementById('orr_bozdf').textContent = fmt(newBOZDf, 1);
+  document.getElementById('orr_bozds').textContent = fmt(newBOZDs, 1);
+  document.getElementById('orr_td').textContent = fmt(newTD, 1);
+}
+
+// ─── Mode switch ─────────────────────────────────────────────────────────────
+function setMode(mode) {
+  document.getElementById('panel-new').classList.toggle('active', mode === 'new');
+  document.getElementById('panel-optimize').classList.toggle('active', mode === 'optimize');
+  document.getElementById('btn-new').classList.toggle('active', mode === 'new');
+  document.getElementById('btn-opt').classList.toggle('active', mode === 'optimize');
+}
+
+// Auto-calculate on load with defaults
+window.addEventListener('load', () => calcNew());
+</script>
+</body>
+</html>
