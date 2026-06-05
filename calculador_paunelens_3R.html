@@ -966,8 +966,8 @@ function calcNew() {
   // Potencia: TP = -337.5/Kf_lente + 337.5/Kf_cornea + 1.25
   // Kf_cornea viene de la refracción y el radio corneal:
   // 337.5/Kf_cornea = 337.5/Rf + sph  →  Kf_cornea = 337.5/(337.5/Rf + sph)
-  const Kf_cornea = 337.5 / (337.5 / Rf + sph);
-  const Ks_cornea = 337.5 / (337.5 / Rs + sph + cyl);
+  const Kf_cornea = 337.5 / (337.5 / Rf + sph - 1.25);
+  const Ks_cornea = 337.5 / (337.5 / Rs + sph + cyl - 1.25);
 
   const TP = calcTP(Kf, Kf_cornea);
   const C_toric = calcTP(Ks, Ks_cornea) - TP;
