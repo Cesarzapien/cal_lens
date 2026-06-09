@@ -969,16 +969,15 @@ function calcNew() {
   const Kf_cornea = 337.5 / (337.5 / Rf + sph - 1.25);
   const Ks_cornea = 337.5 / (337.5 / Rs + sph + cyl - 1.25);
 
-  const TP = calcTP(Kf, Kf_cornea);
-  const C_toric = calcTP(Ks, Ks_cornea) - TP;
+  // Spheric alternative: ponderación 2/3 plano + 1/3 curvo (Excel: B13 = Kf - (Kf-Ks)/3)
+  const Kf_sph = Kf - (Kf - Ks) / 3;
+  const PCf_sph = PCf - (PCf - PCs) / 3;
 
-  // Spheric alternative: promedio
-  const Kf_sph = (Kf + Ks) / 2;
-  const PCf_sph = (PCf + PCs) / 2;
-
-  // BOZD
-  const BOZDf = calcBOZD(Rf, myopia, compBOZDf);
-  const BOZDs = calcBOZD(Rf + (Rs - Rf), myopia, compBOZDs);
+  // BOZD (Excel: usa refracción, no radio)
+  // BOZDf = 0.12*sph + 6.6 ...
+  // BOZDs = 0.12*(sph+cyl) + 6.6 ...
+  const BOZDf = calcBOZD(sph, myopia, compBOZDf);
+  const BOZDs = calcBOZD(sph + cyl, myopia, compBOZDs);
 
   // Toric/spheric decision
   let lensType = typeOverride === 'auto'
@@ -990,7 +989,10 @@ function calcNew() {
   const finalKs = isToric ? Ks : Kf_sph;
   const finalPCf = isToric ? PCf : PCf_sph;
   const finalPCs = isToric ? PCs : PCf_sph;
-  const finalC = isToric ? C_toric : 0;
+
+  // TP usa la Kf final (tórica o esférica según el modo)
+  const TP = calcTP(finalKf, Kf_cornea);
+  const finalC = isToric ? (calcTP(Ks, Ks_cornea) - calcTP(Kf, Kf_cornea)) : 0;
 
   // Rounded
   const rrKf = mround(finalKf, 0.05);
